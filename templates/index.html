@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Tienda de Abarrotes - Detalles</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #f9f9f9; 
+            color: #333; 
+        }
+        h1, h2 { 
+            color: #2c3e50; 
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 20px; 
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+        th, td { 
+            border: 1px solid #ddd; 
+            padding: 12px; 
+            text-align: left; 
+        }
+        th { 
+            background-color: #3498db; 
+            color: white; 
+        }
+        tr:hover { 
+            background-color: #f1f1f1; 
+        }
+        button { 
+            background-color: #3498db; 
+            color: white; 
+            border: none; 
+            padding: 8px 12px; 
+            cursor: pointer; 
+            border-radius: 4px; 
+        }
+        button:hover { 
+            background-color: #2980b9; 
+        }
+        .detalles { 
+            margin-top: 20px; 
+            padding: 15px; 
+            border: 1px solid #ddd; 
+            background-color: #f9f9f9; 
+            border-radius: 5px; 
+            display: none; /* Ocultar por defecto */
+        }
+        .detalles h3 { 
+            margin-bottom: 10px; 
+        }
+        .pagination {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .pagination button {
+            margin: 0 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Resultados de la Tienda</h1>
+    <div id="logs-sistema" style="border: 1px solid #ddd; padding: 10px; margin-top: 20px; background: #fff;">
+        <h2>Registros del Sistema</h2>
+        <p>Cargando...</p>
+    </div>
+
+    <h2>Predicción de Ventas con PyTorch</h2>
+    <input type="number" id="producto-id" placeholder="ID del Producto">
+    <button onclick="obtenerPrediccionVentas()">Predecir Ventas</button>
+    <div id="resultado-pytorch"></div>
+
+    
+    <h2>Clasificación de Productos con TensorFlow</h2>
+    <button onclick="obtenerClasificacionProductos()">Ver Clasificación</button>
+    <div id="resultado-tensorflow"></div>
+
+
+    <h2>Inventario</h2>
+    <table id="tabla-inventario">
+        <thead>
+            <tr>
+                <th>ID Producto</th>
+                <th>Nombre</th>
+                <th>Precio</th>
+                <th>Cantidad</th>
+                <th>Categoría</th>
+                <th>Última Compra</th>
+                <th>Historial de Ventas</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <div class="pagination" id="pagination-inventario"></div>
+
+    <h2>Ventas</h2>
+    <table id="tabla-ventas">
+        <thead>
+            <tr>
+                <th>ID Venta</th>
+                <th>Fecha</th>
+                <th>Total</th>
+                <th>Número de Productos</th>
+                <th>Detalles</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <div class="pagination" id="pagination-ventas"></div>
+
+    <div class="detalles" id="detalles-venta"></div>
+
+<h2>Análisis Avanzado</h2>
+<button onclick="obtenerReabastecimiento()">Recomendaciones de Reabastecimiento</button>
+<button onclick="obtenerProductosBajoRendimiento()">Productos de Bajo Rendimiento</button>
+<button onclick="obtenerPatronesVentas()">Patrones de Ventas</button>
+
+<div id="contenido-adicional"></div>
+
+    <script src="static/script.js"></script>
+</body>
+</html>

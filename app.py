@@ -2,9 +2,13 @@ from flask import Flask, render_template, jsonify
 import threading
 import time
 import pandas as pd
+import os
 from sistema_tienda import SistemaComercialInteligente
 
 
+# Configurar Flask correctamente
+app = Flask(__name__)
+sistema = SistemaComercialInteligente("Mi Tienda de Abarrotes")
 
 app = Flask(__name__)
 sistema = SistemaComercialInteligente("Mi Tienda de Abarrotes")

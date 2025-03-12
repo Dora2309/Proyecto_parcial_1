@@ -43,24 +43,27 @@ class SistemaAbarrotes:
     
     def registrar_venta(self, id_venta, productos, fecha=None):
         if fecha is None:
-            fecha = datetime.now()
-        
+            fecha = datetime.now()  # Si no hay fecha, usa la actual
+    
         total = 0
         productos_vendidos = []
-        
+    
         for id_prod, cantidad in productos:
             if id_prod in self.inventario and self.inventario[id_prod]['cantidad'] >= cantidad:
                 precio_unitario = self.inventario[id_prod]['precio']
                 subtotal = precio_unitario * cantidad
                 total += subtotal
                 
-                # Actualizar inventario
-                self.inventario[id_prod]['cantidad'] -= cantidad
+                # Registrar la fecha de compra correctamente
                 self.inventario[id_prod]['historial_ventas'].append({
                     'fecha': fecha,
                     'cantidad': cantidad
                 })
-                self.inventario[id_prod]['ultima_compra'] = fecha
+
+                # ✅ CORRECCIÓN: Siempre tomar la fecha más reciente como última compra
+                if (self.inventario[id_prod]['ultima_compra'] is None or 
+                    fecha > self.inventario[id_prod]['ultima_compra']):
+                    self.inventario[id_prod]['ultima_compra'] = fecha
                 
                 productos_vendidos.append({
                     'id_producto': id_prod,
@@ -70,21 +73,20 @@ class SistemaAbarrotes:
                     'subtotal': subtotal
                 })
             else:
-                print(f"Error: Producto {id_prod} no disponible en la cantidad solicitada")
+                print(f"⚠️ Error: Producto {id_prod} no disponible en la cantidad solicitada")
                 return None
-        
+
         venta = {
             'id_venta': id_venta,
             'fecha': fecha,
             'productos': productos_vendidos,
             'total': total
         }
-        
-        self.ventas.append(venta)
-        
-        print(f"Venta {id_venta} registrada. Total: ${total:.2f}")
-        return venta
     
+        self.ventas.append(venta)
+        print(f"✅ Venta {id_venta} registrada correctamente. Total: ${total:.2f}")
+        return venta
+        
     def generar_reporte_inventario(self):
         df = pd.DataFrame([
             {
@@ -94,12 +96,13 @@ class SistemaAbarrotes:
                 'precio': info['precio'],
                 'cantidad': info['cantidad'],
                 'valor_total': info['precio'] * info['cantidad'],
-                'dias_sin_venta': (datetime.now() - info['ultima_compra']).days if info['ultima_compra'] else None
+                'ultima_compra': info['ultima_compra'].strftime('%Y-%m-%d %H:%M:%S') if info['ultima_compra'] else 'Nunca'
             }
             for id_prod, info in self.inventario.items()
         ])
         
         return df
+
     
     def generar_reporte_ventas(self, fecha_inicio=None, fecha_fin=None):
         if fecha_inicio is None:

@@ -1,100 +1,57 @@
-from flask import Flask, render_template, jsonify
-import threading
-import time
+import gradio as gr
 import pandas as pd
-import os
 from sistema_tienda import SistemaComercialInteligente
 
-
-# Configurar Flask correctamente
-app = Flask(__name__)
+# Cargar el sistema de tienda
 sistema = SistemaComercialInteligente("Mi Tienda de Abarrotes")
 
-app = Flask(__name__)
-sistema = SistemaComercialInteligente("Mi Tienda de Abarrotes")
+# Función para mostrar el inventario
+def mostrar_inventario():
+    df = sistema.sistema.generar_reporte_inventario()
+    return df
 
-# Cargar datos de muestra y entrenar el modelo al iniciar
-sistema.cargar_datos_muestra()
-sistema.entrenar_predictor_ventas()
-
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/actualizar_datos')
-def actualizar_datos():
-    # Generar reportes o datos que deseas mostrar
-    reporte_inventario = sistema.sistema.generar_reporte_inventario().to_dict(orient='records')
-    reporte_ventas = sistema.sistema.generar_reporte_ventas().to_dict(orient='records')
-    
-    return jsonify({
-        'inventario': reporte_inventario,
-        'ventas': reporte_ventas
-    })
-
-
-@app.route('/detalles_venta/<int:id_venta>')
-def detalles_venta(id_venta):
-    for venta in sistema.sistema.ventas:
-        if venta['id_venta'] == id_venta:
-            return jsonify(venta)
-    return jsonify({}), 404
-
-@app.route('/historial_ventas/<int:id_producto>')
-def historial_ventas(id_producto):
-    # Buscar el producto en el inventario
-    for id_prod, producto in sistema.sistema.inventario.items():
-        if id_prod == id_producto:
-            return jsonify(producto['historial_ventas'])
-    return jsonify([]), 404
-
-@app.route('/clasificacion_productos')
-def clasificacion_productos():
-    resultado = sistema.clasificar_productos()
-    if isinstance(resultado, pd.DataFrame):
-        return jsonify(resultado.to_dict(orient='records'))
-    return jsonify([])
-
-
-@app.route('/prediccion_ventas/<int:id_producto>')
-def prediccion_ventas(id_producto):
+# Función para predecir ventas
+def predecir_ventas(id_producto):
     resultado = sistema.predecir_ventas_producto(id_producto, dias_futuro=14)
     if resultado:
-        return jsonify(resultado)
-    return jsonify({}), 404
+        return resultado
+    return "No hay predicciones disponibles."
 
-@app.route('/reabastecimiento')
-def reabastecimiento():
-    resultado = sistema.recomendar_reabastecimiento()
-    return jsonify(resultado)
+# Función para ver días sin venta
+def dias_sin_venta(id_producto):
+    if id_producto in sistema.sistema.inventario:
+        producto = sistema.sistema.inventario[id_producto]
+        ultima_compra = producto.get('ultima_compra')
 
-@app.route('/productos_bajo_rendimiento')
-def productos_bajo_rendimiento():
-    resultado = sistema.identificar_productos_bajo_rendimiento()
-    if resultado is not None:
-        return jsonify(resultado.to_dict(orient='records'))
-    return jsonify([])
+        if ultima_compra:
+            dias_sin_venta = (pd.Timestamp.now() - pd.Timestamp(ultima_compra)).days
+        else:
+            dias_sin_venta = "Nunca se ha vendido"
 
-@app.route('/patrones_ventas')
-def patrones_ventas():
-    resultado = sistema.analizar_patrones_temporales()
-    return jsonify({
-        'ventas_por_dia': resultado['ventas_por_dia'].to_dict(orient='records'),
-        'ventas_por_hora': resultado['ventas_por_hora'].to_dict(orient='records')
-    })
+        return f"Última compra: {ultima_compra}, Días sin venta: {dias_sin_venta}"
+    return "Producto no encontrado."
 
-def run_flask():
-    app.run(debug=True, use_reloader=False)
-
+# Crear la interfaz en Gradio
+with gr.Blocks() as interfaz:
+    gr.Markdown("# 📦 Sistema Comercial Inteligente")
     
-@app.route('/obtener_logs')
-def obtener_logs():
-    from ejecutar_sistema import get_logs  # Importamos la función de logs
-    return get_logs()
-
-if __name__ == '__main__':
-    threading.Thread(target=run_flask).start()
-
-
-
+    with gr.Tab("Inventario"):
+        btn_inventario = gr.Button("Mostrar Inventario")
+        salida_inventario = gr.Dataframe()
+        btn_inventario.click(mostrar_inventario, outputs=salida_inventario)
     
+    with gr.Tab("Predicción de Ventas"):
+        entrada_id = gr.Number(label="ID del Producto")
+        btn_prediccion = gr.Button("Predecir Ventas")
+        salida_prediccion = gr.Textbox()
+        btn_prediccion.click(predecir_ventas, inputs=entrada_id, outputs=salida_prediccion)
+    
+    with gr.Tab("Días sin Venta"):
+        entrada_id_dias = gr.Number(label="ID del Producto")
+        btn_dias = gr.Button("Ver Días sin Venta")
+        salida_dias = gr.Textbox()
+        btn_dias.click(dias_sin_venta, inputs=entrada_id_dias, outputs=salida_dias)
+
+# Ejecutar la interfaz
+if __name__ == "__main__":
+    interfaz.launch()

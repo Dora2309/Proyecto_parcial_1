@@ -1,8 +1,6 @@
-flask
-gunicorn
+gradio
+pandas
+numpy
 torch
 tensorflow
 scikit-learn
-pandas
-numpy
-matplotlib

@@ -93,9 +93,14 @@ function mostrarHistorialVentas(id_producto) {
     $.getJSON(`/historial_ventas/${id_producto}`, function(historial) {
         let historialHtml = `<h3>Historial de Ventas para Producto ${id_producto}</h3>`;
         historialHtml += `<ul>`;
+
+        // ✅ CORRECCIÓN: Ordenar por fecha descendente para mostrar la más reciente primero
+        historial.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
         historial.forEach(function(venta) {
             historialHtml += `<li>Fecha: ${new Date(venta.fecha).toLocaleString()} - Cantidad: ${venta.cantidad}</li>`;
         });
+
         historialHtml += `</ul>`;
         $('#detalles-venta').html(historialHtml).show();
     });
@@ -186,6 +191,23 @@ function obtenerPatronesVentas() {
         $('#contenido-adicional').html(html);
     });
 }
+
+function obtenerDiasSinVenta() {
+    let id_producto = document.getElementById("producto-id").value;
+    if (!id_producto) {
+        alert("Por favor, ingresa un ID de producto.");
+        return;
+    }
+
+    $.getJSON(`/dias_sin_venta/${id_producto}`, function(data) {
+        let mensaje = `<h3>Días sin Venta - ${data.nombre}</h3>`;
+        mensaje += `<p>Este producto no se ha vendido en los últimos <strong>${data.dias_sin_venta}</strong> días.</p>`;
+        $('#resultado-dias-sin-venta').html(mensaje);
+    }).fail(function() {
+        $('#resultado-dias-sin-venta').html("<p>Error al obtener la información.</p>");
+    });
+}
+
 
 
 function actualizarLogs() {
